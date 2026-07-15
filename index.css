@@ -3,50 +3,126 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   overflow: hidden;
+  font-family: 'Baloo 2', sans-serif;
+  background: url('public/startScreenBackground.png') center/cover no-repeat #dff3ea;
 }
+
 canvas {
   touch-action: none;
+  display: block;
 }
 
-p{
-  position: fixed;
-  top: 0;
-  left: 0;
-  inset: 0;
-  background: red;
-  height: 25px;
-  padding: 5px 10px;
-  font-size: 20px;
+#score-bar {
+  background: cyan;
+  color: #6a3f8f;
+  font-size: 18px;
+  font-weight: 600;
+  width: fit-content;
+  padding: 6px 20px;
+  border: 2px solid #6a3f8f;
+  border-radius: 8px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.8);
+  z-index: 10;
 }
 
-.show {
+/* wrapper handles centering AND clips the oversized spinning gradient */
+.glow-wrapper {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 9999;
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-  background: red;
-  padding: 5px;
-  border-radius: 4px;
-  text-align: center;
+  display: none; /* toggled to flex in JS when game over fires */
+  padding: 3px; /* visible border thickness */
+  border-radius: 24px;
+  overflow: hidden;
 }
 
-.show button {
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 0  auto;
+.glow-border {
+  position: absolute;
+  inset: -1000%;
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    #09090b 0%,
+    #09090b 50%,
+    #ffffff 75%,
+    #f59e0b 100%
+  );
+  animation: border-spin 3s linear infinite;
+}
+
+@keyframes border-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* single source of truth for the card itself — no positioning here,
+   the wrapper already centers it. relative + z-index just lifts it
+   above .glow-border so the spinning gradient only shows as a ring. */
+.show {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  background: #fff6e9;
+  padding: 32px 48px;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+.mascot {
+  width: 72px;
+  height: 72px;
+  animation: bob 2s ease-in-out infinite;
 }
 
 #game-over {
-  text-align: center;
-  font-size: 80px;
-  color: white;
+  font-size: 48px;
+  color: #e0669b;
+  text-shadow: 0 3px 0 #ffffff;
+}
+
+#final-score {
+  font-size: 20px;
+  font-weight: 600;
+  color: #6a3f8f;
+  margin-top: -8px;
+}
+
+.show button {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: purple;
+  background: cyan;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #4fae86;
+  animation: pulse 1.6s ease-in-out infinite;
+  transition: transform 0.1s ease;
+}
+
+.show button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #4fae86;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }

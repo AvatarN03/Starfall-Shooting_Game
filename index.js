@@ -1,6 +1,7 @@
 const canvas = document.querySelector("canvas");
 
-const gameOver = document.querySelector(".show");
+const gameOver = document.querySelector(".glow-wrapper");
+const finalScoreEl = document.querySelector("#final-score-value");
 
 const scoreEl = document.querySelector("#score");
 
@@ -289,6 +290,32 @@ const keys = {
   },
 };
 
+// --- shooting rate limit ---
+const SHOOT_COOLDOWN = 300; // ms between shots, tweak to taste
+let lastShotTime = 0;
+
+function fireProjectile() {
+  if (!player.position) return; // player image not loaded yet
+
+  const now = Date.now();
+  if (now - lastShotTime < SHOOT_COOLDOWN) return; // still on cooldown
+  lastShotTime = now;
+
+  projectiles.push(
+    new Projectile({
+      position: {
+        x: player.position.x + player.width / 2,
+        y: player.position.y,
+      },
+      velocity: {
+        x: 0,
+        y: -5,
+      },
+    }),
+  );
+}
+// --- end shooting rate limit ---
+
 player.update(); // the image will load later we need to shift this code to requestAnimate function
 
 for (let i = 0; i < 100; i++) {
@@ -459,7 +486,11 @@ function animate() {
     player.velocity.x = 5;
     player.rotation = 0.15;
   }
-  console.log(randomInterval, frames);
+
+  if (keys.space.pressed) {
+    fireProjectile();
+  }
+
   if (frames % randomInterval === 0) {
     randomInterval = Math.floor(Math.random() * 500) + 500;
     frames = 0;
@@ -487,18 +518,6 @@ addEventListener("keydown", ({ key }) => {
 
     case " ":
       keys.space.pressed = true;
-      projectiles.push(
-        new Projectile({
-          position: {
-            x: player.position.x + player.width / 2,
-            y: player.position.y,
-          },
-          velocity: {
-            x: 0,
-            y: -5,
-          },
-        }),
-      );
       break;
   }
 });
@@ -551,18 +570,7 @@ canvas.addEventListener("touchstart", (e) => {
 
   touchStartX = touch.clientX;
 
-  projectiles.push(
-    new Projectile({
-      position: {
-        x: player.position.x + player.width / 2,
-        y: player.position.y,
-      },
-      velocity: {
-        x: 0,
-        y: -5,
-      },
-    })
-  );
+  fireProjectile();
 });
 
 canvas.addEventListener("touchend", () => {
@@ -575,6 +583,7 @@ canvas.addEventListener("touchmove", (e) => {
 
 function showGameOver() {
   console.log("Out");
+  finalScoreEl.innerHTML = score;
   gameOver.style.display = "flex";
   cancelAnimationFrame(animationId);
 }
