@@ -66,10 +66,10 @@ class Player {
     c.restore();
   }
 
-  update() {
+  update(dt = 1) {
     if (this.image) {
       this.draw();
-      this.position.x += this.velocity.x;
+      this.position.x += this.velocity.x * dt;
     }
   }
 }
@@ -89,10 +89,10 @@ class Projectile {
     c.closePath();
   }
 
-  update() {
+  update(dt = 1) {
     this.draw();
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
   }
 }
 
@@ -118,12 +118,12 @@ class Particle {
     c.restore();
   }
 
-  update() {
+  update(dt = 1) {
     this.draw();
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
     if (this.fades) {
-      this.opacity -= 0.01;
+      this.opacity -= 0.01 * dt;
     }
   }
 }
@@ -141,10 +141,10 @@ class InvaderProjectile {
     c.fillRect(this.position.x, this.position.y, this.width, this.height);
   }
 
-  update() {
+  update(dt = 1) {
     this.draw();
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
   }
 }
 
@@ -185,11 +185,11 @@ class Invader {
     );
   }
 
-  update({ velocity }) {
+  update({ velocity, dt = 1 }) {
     if (this.image) {
       this.draw();
-      this.position.x += velocity.x;
-      this.position.y += velocity.y;
+      this.position.x += velocity.x * dt;
+      this.position.y += velocity.y * dt;
     }
   }
 
@@ -243,8 +243,8 @@ class Grid {
     }
   }
 
-  update() {
-    this.position.x += this.velocity.x;
+  update(dt = 1) {
+    this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y;
 
     this.velocity.y = 0;
@@ -355,8 +355,22 @@ function createParticles({ object, color, value = 3, iter = 30 }) {
   }
 }
 
-function animate() {
+// --- frame-rate independent movement ---
+// requestAnimationFrame fires at the display's refresh rate (60Hz desktop,
+// often 90/120Hz on phones), so raw per-frame increments run faster on
+// high refresh-rate screens. We normalize every update() call against a
+// 60fps baseline (16.67ms/frame) using the real time elapsed since the
+// last frame, so movement speed stays consistent across devices.
+let lastTime = 0;
+
+function animate(timestamp = 0) {
   animationId = requestAnimationFrame(animate);
+
+  const rawDelta = lastTime ? timestamp - lastTime : 16.67;
+  lastTime = timestamp;
+  // clamp to avoid huge jumps after e.g. switching tabs
+  const dt = Math.min(rawDelta / 16.67, 3);
+
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
   invaderProjectiles.forEach((invaderProjectile, index) => {
@@ -368,7 +382,7 @@ function animate() {
         invaderProjectiles.splice(index, 1);
       });
     } else {
-      invaderProjectile.update();
+      invaderProjectile.update(dt);
     }
 
     if (
@@ -403,12 +417,12 @@ function animate() {
         particles.splice(index, 1);
       });
     } else {
-      particle.update();
+      particle.update(dt);
     }
   });
 
   grids.forEach((grid) => {
-    grid.update();
+    grid.update(dt);
 
     if (frames % 100 === 0 && grid.invaders.length > 0) {
       grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(
@@ -419,6 +433,7 @@ function animate() {
     grid.invaders.forEach((invader, i) => {
       invader.update({
         velocity: grid.velocity,
+        dt,
       });
 
       // projectile hit enemy
@@ -469,7 +484,7 @@ function animate() {
         projectiles.splice(index, 1);
       });
     } else {
-      projectile.update();
+      projectile.update(dt);
     }
   });
 
@@ -499,7 +514,7 @@ function animate() {
 
   frames++;
 
-  player.update();
+  player.update(dt);
 }
 
 animate();

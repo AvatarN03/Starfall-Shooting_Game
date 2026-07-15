@@ -117,6 +117,37 @@ canvas {
   box-shadow: 0 1px 0 #4fae86;
 }
 
+@media (max-width: 480px) {
+  .glow-wrapper {
+    width: 88vw;
+    max-width: 340px;
+  }
+
+  .show {
+    width: 100%;
+    padding: 24px 20px;
+    gap: 10px;
+  }
+
+  .mascot {
+    width: 56px;
+    height: 56px;
+  }
+
+  #game-over {
+    font-size: 32px;
+  }
+
+  #final-score {
+    font-size: 16px;
+  }
+
+  .show button {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+}
+
 @keyframes bob {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-12px); }
